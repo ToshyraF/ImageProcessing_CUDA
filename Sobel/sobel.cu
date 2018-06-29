@@ -192,7 +192,7 @@ int main (int argc, char** argv)
 {
     // Open a webcamera
     //uchar3 test ;
-    cv::VideoCapture camera(0);
+    cv::VideoCapture camera(1);
     cv::Mat          frame;
     if(!camera.isOpened()) 
         return -1;
@@ -230,30 +230,71 @@ int main (int argc, char** argv)
     const ssize_t gaussianKernel5x5Offset = 0;
 
     // Sobel gradient kernels
-    // const float sobelGradientX[9] =
-    // {
-    //     -1.f, 0.f, 1.f,
-    //     -2.f, 0.f, 2.f,
-    //     -1.f, 0.f, 1.f,
-    // };
-    // const float sobelGradientY[9] =
-    // {
-    //     1.f, 2.f, 1.f,
-    //     0.f, 0.f, 0.f,
-    //     -1.f, -2.f, -1.f,
-    // };
-     const float sobelGradientX[9] =
+    const float sobelGradientX[9] =
     {
-        0.f, -1.f, 0.f,
-        -1.f, 4.f, -1.f,
-        0.f, -1.f, 0.f,
+        0.f, 1.f, 0.f,
+        1.f, -4.f, 1.f,
+        0.f, 1.f, 0.f,
+
     };
     const float sobelGradientY[9] =
     {
-        -1.f, -1.f, -1.f,
-        -1.f, 8.f, -1.f,
-        -1.f, -1.f, -1.f,
+        1.f, 1.f, 1.f,
+        1.f, -8.f, 1.f,
+        1.f, 1.f, 1.f,
     };
+    //  const float sobelGradientX[9] =
+    // {
+    //     0.f, -1.f, 0.f,
+    //     -1.f, 4.f, -1.f,
+    //     0.f, -1.f, 0.f,
+    // };
+    // const float sobelGradientY[9] =
+    // {
+    //     -1.f, -1.f, -1.f,
+    //     -1.f, 8.f, -1.f,
+    //     -1.f, -1.f, -1.f,
+    // };
+    //  const float sobelGradientX[9] =
+    // {
+    //     0.f, -8.f, 0.f,
+    //     -8.f, 4.f, -8.f,
+    //     0.f, -8.f, 0.f,
+    // };
+    // const float sobelGradientY[9] =
+    // {
+    //     -2.f, 0.f, -2.f,
+    //     -2.f, 7.f, -2.f,
+    //     -2.f, 0.f, -2.f,
+    // };
+    // const float sobelGradientX[25] =
+    // {
+    //     2.f, 2.f, 4.f, 2.f, 2.f,
+    //     1.f, 1.f, 2.f, 1.f, 1.f,
+    //     0.f, 0.f, 0.f, 0.f, 0.f,
+    //     -1.f, -1.f, -2.f, -1.f, -1.f,
+    //     -2.f, -2.f, -4.f, -2.f, -2.f,
+    // };
+    // const float sobelGradientY[25] =
+    // {
+    //     2.f, 1.f, 0.f, -1.f, -2.f,
+    //     2.f, 1.f, 0.f, -1.f, -2.f,
+    //     4.f, 2.f, 0.f, -2.f, -4.f,
+    //     2.f, 1.f, 0.f, -1.f, -2.f,
+    //     2.f, 1.f, 0.f, -1.f, -2.f,
+    // };
+    // const float sobelGradientX[9] =
+    // {
+    //     5.f, 5.f, 5.f,
+    //     -3.f, 0.f, -3.f,
+    //     -3.f, -3.f, -3.f,
+    // };
+    // const float sobelGradientY[9] =
+    // {
+    //     5.f, -3.f, -3.f,
+    //     5.f, 0.f, -3.f,
+    //     5.f, -3.f, -3.f,
+    // };
     const float dilate[9] =
     {
         1.f, 1.f, 1.f,
@@ -277,17 +318,18 @@ int main (int argc, char** argv)
     const ssize_t dilateKernel = sizeof(dilate)/sizeof(float);
     const ssize_t erodeKernel = sizeof(erode)/sizeof(float);
 
-    // const ssize_t erodeKernel2 = sizeof(erodeKernel)/sizeof(float);
+    const ssize_t erodeKernel2 = sizeof(erodeKernel)/sizeof(float);
     // Create CPU/GPU shared images - one for the initial and one for the result
     camera >> frame;
-    unsigned char *sourceDataDevice, *blurredDataDevice, *edgesDataDevice, *thresholdDataDevice, *dilateDataDevice, *erodeDataDevice, *erodeDataDevice2;
+    unsigned char *sourceDataDevice, *blurredDataDevice, *edgesDataDevice, *thresholdDataDevice, *dilateDataDevice, *erodeDataDevice, *erodeDataDevice2, *dilateDataDevic2;
     cv::Mat source  (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &sourceDataDevice));
     cv::Mat blurred (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &blurredDataDevice));
     cv::Mat edges   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &edgesDataDevice));
     cv::Mat thes   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &thresholdDataDevice));
     cv::Mat dilates   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &dilateDataDevice));
+    cv::Mat dilates2   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &dilateDataDevic2));
     cv::Mat erodes   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &erodeDataDevice));
-    // cv::Mat erodes2   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &erodeDataDevice2));
+    cv::Mat erodes2   (frame.size(), CV_8U, createImageBuffer(frame.size().width * frame.size().height, &erodeDataDevice2));
     // Create two temporary images (for holding sobel gradients)
     unsigned char *deviceGradientX, *deviceGradientY;
     cudaMalloc(&deviceGradientX, frame.size().width * frame.size().height);
@@ -321,12 +363,14 @@ int main (int argc, char** argv)
             convolve<<<cblocks,cthreads>>>(edgesDataDevice, frame.size().width, frame.size().height, 0, 0, gaussianKernel5x5Offset, Blur, Blur, blurredDataDevice);
 
             theshould<<<pblocks,pthreads>>>(blurredDataDevice,thresholdDataDevice,60);
-            Erode<<<cblocks,cthreads>>>(thresholdDataDevice, frame.size().width, frame.size().height, 2, 2, erodeKernel, 4, 4, erodeDataDevice);
+            Dilate<<<cblocks,cthreads>>>(thresholdDataDevice, frame.size().width, frame.size().height, 2, 2, dilateKernel, 4, 4, dilateDataDevice);
+            Erode<<<cblocks,cthreads>>>(dilateDataDevice, frame.size().width, frame.size().height, 2, 2, erodeKernel, 7, 7, erodeDataDevice);
             // // 
-            Dilate<<<cblocks,cthreads>>>(erodeDataDevice, frame.size().width, frame.size().height, 2, 2, dilateKernel, 4, 4, dilateDataDevice);
-
-            // Erode<<<cblocks,cthreads>>>(erodeDataDevice, frame.size().width, frame.size().height, 2, 2, erodeKernel2, 3, 3, erodeDataDevice2);
-            // Dilate<<<cblocks,cthreads>>>(erodeDataDevice2, frame.size().width, frame.size().height, 2, 2, dilateKernel, 7, 7, dilateDataDevice);
+            // Erode<<<cblocks,cthreads>>>(dilateDataDevice, frame.size().width, frame.size().height, 2, 2, erodeKernl, 4, 4, erodeDataDevice);
+            
+            // Dilate<<<cblocks,cthreads>>>(erodeDataDevice, frame.size().width, frame.size().height, 2, 2, dilateKernel, 4, 4, dilateDataDevic2);
+            // Erode<<<cblocks,cthreads>>>(dilateDataDevic2, frame.size().width, frame.size().height, 2, 2, erodeKernel2, 4, 4, erodeDataDevice2);
+            
             cudaThreadSynchronize();
         }
         cudaEventRecord(stop);
@@ -344,8 +388,9 @@ int main (int argc, char** argv)
         cv::imshow("Blurred", blurred); 
         cv::imshow("Theshould", thes);
         cv::imshow("Erode", erodes);
+        cv::imshow("Erode2", erodes2);
         cv::imshow("Dilate", dilates);
-        // cv::imshow("Erode2", erodes2);
+        cv::imshow("Dilate2", dilates2);
         
         // Spin
         if(cv::waitKey(1) == 27) break;
